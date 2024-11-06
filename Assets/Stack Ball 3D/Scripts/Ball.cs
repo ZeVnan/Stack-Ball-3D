@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,24 +5,16 @@ public class Ball : MonoBehaviour
 {
     #region Serialize Field
     [SerializeField]
-    private AudioClip bounceOffClip;
-    [SerializeField]
-    private AudioClip deadClip;
-    [SerializeField]
-    private AudioClip winClip;
-    [SerializeField]
-    private AudioClip destroyClip;
-    [SerializeField]
-    private AudioClip iDestroyClip;
+    private AudioClip bounceOffClip, deadClip, winClip, destroyClip, iDestroyClip;
     [Range(0f, 1f)]
     [SerializeField]
     private float soundFXVolumeScale = 0.5f;
     [SerializeField]
     private GameObject invincibleObject;
     [SerializeField]
-    private GameObject fireEffect;
-    [SerializeField]
     private Image invincibleFill;
+    [SerializeField]
+    private GameObject fireEffect, winEffect, splashEffect;
     #endregion
 
     #region Field
@@ -71,12 +59,6 @@ public class Ball : MonoBehaviour
                 }
                 ProcessInvincible();
                 break;
-            case BallState.Prepare:
-                if (Input.GetMouseButtonDown(0))
-                {
-                    ballState = BallState.Playing;
-                }
-                break;
             case BallState.Finish:
                 if (Input.GetMouseButtonDown(0))
                 {
@@ -87,17 +69,20 @@ public class Ball : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (Input.GetMouseButton(0))
+        if (ballState == BallState.Playing)
         {
-            smash = true;
-            rigidBody.velocity = new Vector3(0, -100 * Time.fixedDeltaTime * 7, 0);
-        }
-        if (rigidBody.velocity.y > 5)
-        {
-            rigidBody.velocity = new Vector3
-                (rigidBody.velocity.x,
-                5,
-                rigidBody.velocity.z);
+            if (Input.GetMouseButton(0))
+            {
+                smash = true;
+                rigidBody.velocity = new Vector3(0, -100 * Time.fixedDeltaTime * 7, 0);
+            }
+            if (rigidBody.velocity.y > 5)
+            {
+                rigidBody.velocity = new Vector3
+                    (rigidBody.velocity.x,
+                    5,
+                    rigidBody.velocity.z);
+            }
         }
     }
     private void OnCollisionEnter(Collision collision)
@@ -105,13 +90,35 @@ public class Ball : MonoBehaviour
         if (!smash)
         {
             rigidBody.velocity = new Vector3(0, 50 * Time.deltaTime * 5, 0);
+            if (collision.gameObject.tag != "Finish")
+            {
+                GameObject splash = Instantiate(splashEffect);
+                splash.transform.SetParent(collision.transform);
+                splash.transform.localEulerAngles = new Vector3(90, Random.Range(0, 359), 0);
+                float randomScale = Random.Range(0.18f, 0.25f);
+                splash.transform.localScale = new Vector3(randomScale, randomScale, 1);
+                splash.transform.position = new Vector3(
+                    transform.position.x,
+                    transform.position.y - 0.22f,
+                    transform.position.z);
+                splash.GetComponent<SpriteRenderer>().color =
+                    transform
+                    .GetChild(0)
+                    .GetComponent<MeshRenderer>()
+                    .material
+                    .color;
+            }
             SoundManager.Instance.PlaySoundFX(bounceOffClip, soundFXVolumeScale);
         }
         else
         {
             if (invincible)
             {
-                collision.transform.parent.GetComponent<StackController>().ShatterAllParts();
+                StackController temp = collision.transform.parent.GetComponent<StackController>();
+                if (temp != null)
+                {
+                    temp.ShatterAllParts();
+                }
             }
             else
             {
@@ -121,8 +128,9 @@ public class Ball : MonoBehaviour
                 }
                 if (collision.gameObject.tag == "plane")
                 {
-                    print("Over");
-                    ScoreManager.Instance.ResetScore();
+                    rigidBody.isKinematic = true;
+                    transform.GetChild(0).gameObject.SetActive(false);
+                    ballState = BallState.Died;
                     SoundManager.Instance.PlaySoundFX(deadClip, soundFXVolumeScale);
                 }
             }
@@ -132,6 +140,10 @@ public class Ball : MonoBehaviour
         {
             ballState = BallState.Finish;
             SoundManager.Instance.PlaySoundFX(winClip, soundFXVolumeScale);
+            GameObject win = Instantiate(winEffect);
+            win.transform.SetParent(Camera.main.transform);
+            win.transform.localPosition = Vector3.up * 1.5f;
+            win.transform.eulerAngles = Vector3.zero;
         }
     }
     private void OnCollisionStay(Collision collision)

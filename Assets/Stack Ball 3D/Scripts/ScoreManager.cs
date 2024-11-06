@@ -7,7 +7,7 @@ public class ScoreManager : Singleton<ScoreManager>
 {
     #region Serialize Field
     [SerializeField]
-    private int score = 0;
+    public int Score = 0;
     #endregion
 
     #region Field
@@ -31,22 +31,22 @@ public class ScoreManager : Singleton<ScoreManager>
         {
             scoretext = GameObject.Find("ScoreText").GetComponent<Text>(); 
         }
-        scoretext.text = score.ToString();
+        scoretext.text = Score.ToString();
     }
     #endregion
     
     #region Custom Method
     public void AddScore(int amount)
     {
-        score += amount;
-        if (score > PlayerPrefs.GetInt("HighScore", 0))
+        Score += amount;
+        if (Score > PlayerPrefs.GetInt("HighScore", 0))
         {
-            PlayerPrefs.SetInt("HighScore", score);
+            PlayerPrefs.SetInt("HighScore", Score);
         }
     }
     public void ResetScore()
     {
-        score = 0;
+        Score = 0;
     }
     #endregion
 }

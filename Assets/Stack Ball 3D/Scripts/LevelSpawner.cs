@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,9 +12,13 @@ public class LevelSpawner : MonoBehaviour
     [SerializeField]
     private GameObject winPrefab;
     [SerializeField]
-    private int level = 1;
+    public int Level = 1;
     [SerializeField]
     private int addOn = 7;
+    [SerializeField]
+    private Material planeMaterial, poleMaterial;
+    [SerializeField]
+    private MeshRenderer ballMesh;
     #endregion
 
     #region Field
@@ -26,24 +31,27 @@ public class LevelSpawner : MonoBehaviour
     #region Overrided/Impletented Method
     private void Awake()
     {
-        level = PlayerPrefs.GetInt("Level", 1);
-        if (level > 9)
+        planeMaterial.color = Random.ColorHSV(0, 1, 0.5f, 1, 1, 1);
+        poleMaterial.color = planeMaterial.color + Color.gray;
+        ballMesh.material.color = planeMaterial.color;
+        Level = PlayerPrefs.GetInt("Level", 1);
+        if (Level > 9)
         {
             addOn = 0;
         }
         ModelSelection();
         float random = Random.value;
-        for (i = 0; i > - level - addOn; i -= 0.5f)
+        for (i = 0; i > -Level - addOn; i -= 0.5f)
         {
-            if (level <= 20)
+            if (Level <= 20)
             {
                 temp1 = Instantiate(ModelPrefab[Random.Range(0, 2)]);
             }
-            else if (level <= 50)
+            else if (Level <= 50)
             {
                 temp1 = Instantiate(ModelPrefab[Random.Range(1, 3)]);
             }
-            else if (level <= 100)
+            else if (Level <= 100)
             {
                 temp1 = Instantiate(ModelPrefab[Random.Range(2, 4)]);
             }
@@ -53,12 +61,12 @@ public class LevelSpawner : MonoBehaviour
             }
             temp1.transform.position = new Vector3(0, i - 0.01f, 0);
             temp1.transform.eulerAngles = new Vector3(0, i * 8, 0);
-            if (Mathf.Abs(i) >= level * 0.3f && Mathf.Abs(i) <= level * 0.6f)
+            if (Mathf.Abs(i) >= Level * 0.3f && Mathf.Abs(i) <= Level * 0.6f)
             {
                 temp1.transform.eulerAngles = new Vector3(0, i * 8, 0);
                 temp1.transform.eulerAngles += Vector3.up * 180;
             }
-            else if (Mathf.Abs(i) >= level * 0.8f)
+            else if (Mathf.Abs(i) >= Level * 0.8f)
             {
                 temp1.transform.eulerAngles = new Vector3(0, i * 8, 0);
                 if (random > 0.75f)
@@ -73,7 +81,12 @@ public class LevelSpawner : MonoBehaviour
     }
     private void Update()
     {
-        
+        if (Input.GetMouseButton(1))
+        {
+            planeMaterial.color = Random.ColorHSV(0, 1, 0.5f, 1, 1, 1);
+            poleMaterial.color = planeMaterial.color + Color.gray;
+            ballMesh.material.color = planeMaterial.color;
+        }
     }
     #endregion
     

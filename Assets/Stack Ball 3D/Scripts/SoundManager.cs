@@ -6,7 +6,7 @@ public class SoundManager : Singleton<SoundManager>
 {
     #region Serialize Field
     [SerializeField]
-    private bool sound = true;
+    public bool sound = true;
     #endregion
 
     #region Field
